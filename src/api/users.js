@@ -149,68 +149,38 @@ router.get('/', async (req, res) => {
           ],
         }
       });
+      const finalPage = (Number(page) + 1) <= result.length ? Number(page) : (Number(page) - 1);
       console.log(`page  = ${page}`);
       console.log(`limit  = ${limit}`);
-      console.log(`(limit + page) = ${limit + page}`);
-      console.log(`result.length = ${result.length}`);
-      if ((Number(limit) + Number(page)) <= result.length) {
-        result = await usersModel.findAll({
-          limit: Number(limit),
-          offset: Number(page),
-          where: {
-            [Op.or]: [
-              {
-                firstName: {
-                  [Op.like]: `%${like}%`
-                },
+      console.log(`finalPage = ${finalPage}`);
+      result = await usersModel.findAll({
+        limit: Number(limit),
+        offset: finalPage,
+        where: {
+          [Op.or]: [
+            {
+              firstName: {
+                [Op.like]: `%${like}%`
               },
-              {
-                lastName: {
-                  [Op.like]: `%${like}%`
-                },
+            },
+            {
+              lastName: {
+                [Op.like]: `%${like}%`
               },
-              {
-                phoneNumber: {
-                  [Op.like]: `%${like}%`
-                },
+            },
+            {
+              phoneNumber: {
+                [Op.like]: `%${like}%`
               },
-              {
-                email: {
-                  [Op.like]: `%${like}%`
-                }
+            },
+            {
+              email: {
+                [Op.like]: `%${like}%`
               }
-            ],
-          }
-        });
-      } else if (Number(limit) <= result.length) {
-        result = await usersModel.findAll({
-          limit: Number(limit),
-          where: {
-            [Op.or]: [
-              {
-                firstName: {
-                  [Op.like]: `%${like}%`
-                },
-              },
-              {
-                lastName: {
-                  [Op.like]: `%${like}%`
-                },
-              },
-              {
-                phoneNumber: {
-                  [Op.like]: `%${like}%`
-                },
-              },
-              {
-                email: {
-                  [Op.like]: `%${like}%`
-                }
-              }
-            ],
-          }
-        });
-      }
+            }
+          ],
+        }
+      });
     }
     res.status(200).send({
       message: 'success',
