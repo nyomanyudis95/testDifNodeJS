@@ -4,7 +4,7 @@ const { Op } = require('sequelize');
 // const jwt = require('jsonwebtoken');
 
 const usersModel = require('../model/users');
-const utils = require('../utils');
+// const utils = require('../utils');
 
 const router = express.Router();
 
@@ -85,103 +85,53 @@ router.delete('/:id', async (req, res) => {
   }
 });
 
+const pagination = (query, page, pageSize) => {
+  const offset = Number(page) * Number(pageSize);
+  const limit = Number(pageSize);
+
+  return {
+    ...query,
+    offset,
+    limit,
+  };
+};
+
 router.get('/', async (req, res) => {
   try {
     let { page, limit, like } = req.query;
-    let result;
-    if (like == null) {
-      like = '';
-    }
-    if (page == null && limit == null) {
-      result = await usersModel.findAll({
-        where: {
-          [Op.or]: [
-            {
-              firstName: {
-                [Op.like]: `%${like}%`
-              },
-            },
-            {
-              lastName: {
-                [Op.like]: `%${like}%`
-              },
-            },
-            {
-              phoneNumber: {
-                [Op.like]: `%${like}%`
-              },
-            },
-            {
-              email: {
-                [Op.like]: `%${like}%`
-              }
-            }
-          ],
-        }
-      });
-    } else {
-      if (page == null) page = 1;
-      if (limit == null) limit = 5;
+    if (like == null) like = '';
+    if (page == null) page = 0;
+    if (limit == null) limit = 5;
 
-      result = await usersModel.findAll({
-        where: {
-          [Op.or]: [
-            {
-              firstName: {
-                [Op.like]: `%${like}%`
-              },
+    const result = await usersModel.findAll(pagination({
+      where: {
+        [Op.or]: [
+          {
+            firstName: {
+              [Op.like]: `%${like}%`
             },
-            {
-              lastName: {
-                [Op.like]: `%${like}%`
-              },
+          },
+          {
+            lastName: {
+              [Op.like]: `%${like}%`
             },
-            {
-              phoneNumber: {
-                [Op.like]: `%${like}%`
-              },
+          },
+          {
+            phoneNumber: {
+              [Op.like]: `%${like}%`
             },
-            {
-              email: {
-                [Op.like]: `%${like}%`
-              }
+          },
+          {
+            email: {
+              [Op.like]: `%${like}%`
             }
-          ],
-        }
-      });
-      const finalPage = (Number(page) + 1) <= result.length ? Number(page) : (Number(page) - 1);
-      console.log(`page  = ${page}`);
-      console.log(`limit  = ${limit}`);
-      console.log(`finalPage = ${finalPage}`);
-      result = await usersModel.findAll({
-        limit: Number(limit),
-        offset: finalPage,
-        where: {
-          [Op.or]: [
-            {
-              firstName: {
-                [Op.like]: `%${like}%`
-              },
-            },
-            {
-              lastName: {
-                [Op.like]: `%${like}%`
-              },
-            },
-            {
-              phoneNumber: {
-                [Op.like]: `%${like}%`
-              },
-            },
-            {
-              email: {
-                [Op.like]: `%${like}%`
-              }
-            }
-          ],
-        }
-      });
-    }
+          }
+        ],
+      }
+    },
+    page,
+    limit));
+
     res.status(200).send({
       message: 'success',
       dataLength: result.length,
